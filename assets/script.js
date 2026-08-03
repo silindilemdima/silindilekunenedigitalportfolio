@@ -35,17 +35,72 @@
     }
 
     // 2. Mobile nav toggle
-    var toggle = document.querySelector("[data-nav-toggle], header button");
-    var panel = document.querySelector("[data-nav-panel]");
-    if (toggle && panel) {
-      toggle.addEventListener("click", function () {
-        var open = panel.getAttribute("data-open") === "true";
-        panel.setAttribute("data-open", open ? "false" : "true");
-        panel.style.display = open ? "none" : "block";
+    var toggle = document.querySelector("[data-nav-toggle], header button[aria-label], header button");
+    var navList = document.querySelector("nav > ul");
+    var overlay = document.querySelector(".mobile-nav-overlay");
+
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "mobile-nav-overlay";
+      document.body.appendChild(overlay);
+    }
+
+    if (toggle && navList) {
+      toggle.addEventListener("click", function (event) {
+        event.preventDefault();
+        var open = document.body.classList.toggle("mobile-nav-open");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        navList.classList.toggle("is-open", open);
+        overlay.classList.toggle("is-visible", open);
+      });
+
+      overlay.addEventListener("click", function () {
+        document.body.classList.remove("mobile-nav-open");
+        toggle.setAttribute("aria-expanded", "false");
+        navList.classList.remove("is-open");
+        overlay.classList.remove("is-visible");
+      });
+
+      window.addEventListener("resize", function () {
+        if (window.innerWidth >= 768) {
+          document.body.classList.remove("mobile-nav-open");
+          toggle.setAttribute("aria-expanded", "false");
+          navList.classList.remove("is-open");
+          overlay.classList.remove("is-visible");
+        }
       });
     }
 
-    // 3. Smooth in-page anchors
+    // 3. Hyperlink contact info
+    document.querySelectorAll("a[href*='mailto:']").forEach(function (a) {
+      a.href = "mailto:silindilemdima@gmail.com";
+      a.setAttribute("rel", "noopener noreferrer");
+    });
+
+    document.querySelectorAll("a").forEach(function (a) {
+      var label = (a.textContent || "").trim().toLowerCase();
+      if (label.indexOf("behance") > -1) {
+        a.href = "https://www.behance.net/sleejee";
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      } else if (label.indexOf("linkedin") > -1) {
+        a.href = "https://za.linkedin.com/in/silindile-kunene-6a15b4355";
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      }
+    });
+
+    if (!document.querySelector('a[href^="tel:"]') && document.body.textContent.indexOf("0814016273") > -1) {
+      var phoneLink = document.createElement("a");
+      phoneLink.href = "tel:0814016273";
+      phoneLink.textContent = "0814016273";
+      phoneLink.target = "_blank";
+      phoneLink.rel = "noopener noreferrer";
+      var targetContainer = document.querySelector("main") || document.body;
+      targetContainer.appendChild(phoneLink);
+    }
+
+    // 4. Smooth in-page anchors
     document.querySelectorAll('a[href^="#"]').forEach(function (a) {
       a.addEventListener("click", function (ev) {
         var t = document.querySelector(a.getAttribute("href"));
@@ -88,10 +143,8 @@ function initCursor() {
   }
 
   function animate() {
-    if (!active) {
-      ringX += (mouseX - ringX) * 0.18;
-      ringY += (mouseY - ringY) * 0.18;
-    }
+    ringX += (mouseX - ringX) * 0.18;
+    ringY += (mouseY - ringY) * 0.18;
     updateCursor();
     requestAnimationFrame(animate);
   }
